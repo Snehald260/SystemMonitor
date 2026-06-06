@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SystemMonitor.App/SystemMonitor.App.csproj" />
+    <Project Path="src/SystemMonitor.Core/SystemMonitor.Core.csproj" />
+    <Project Path="src/SystemMonitor.Infrastructure/SystemMonitor.Infrastructure.csproj" />
+    <Project Path="src/SystemMonitor.Plugins/SystemMonitor.Plugins.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SystemMonitor.Tests/SystemMonitor.Tests.csproj" />
+  </Folder>
+</Solution>
