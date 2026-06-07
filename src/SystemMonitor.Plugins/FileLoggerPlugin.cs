@@ -15,6 +15,7 @@ public sealed class FileLoggerPlugin : IMonitorPlugin
 {
     private readonly FileLoggerOptions _options;
     private readonly ILogger<FileLoggerPlugin> _logger;
+    private readonly string _resolvedPath;
 
     // Serialises writes so concurrent cycles can never interleave or corrupt the file.
     private readonly SemaphoreSlim _writeLock = new(1, 1);
@@ -23,6 +24,13 @@ public sealed class FileLoggerPlugin : IMonitorPlugin
     {
         _options = options.Value;
         _logger = logger;
+
+        // Resolve relative paths against the application's base (binary) directory rather than
+        // the current working directory, so the log lands in the same place whether the app is
+        // started from Visual Studio or via "dotnet run".
+        _resolvedPath = Path.IsPathRooted(_options.FilePath)
+            ? _options.FilePath
+            : Path.Combine(AppContext.BaseDirectory, _options.FilePath);
 
         EnsureDirectoryExists();
     }
@@ -46,7 +54,7 @@ public sealed class FileLoggerPlugin : IMonitorPlugin
         await _writeLock.WaitAsync(cancellationToken);
         try
         {
-            await File.AppendAllTextAsync(_options.FilePath, line + Environment.NewLine, cancellationToken);
+            await File.AppendAllTextAsync(_resolvedPath, line + Environment.NewLine, cancellationToken);
         }
         finally
         {
@@ -56,7 +64,7 @@ public sealed class FileLoggerPlugin : IMonitorPlugin
 
     private void EnsureDirectoryExists()
     {
-        var directory = Path.GetDirectoryName(Path.GetFullPath(_options.FilePath));
+        var directory = Path.GetDirectoryName(_resolvedPath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
